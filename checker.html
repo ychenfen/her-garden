@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>她的花园 - 健康信号解码器</title>
+    <style>
+        :root {
+            --bg-color: #fdf6f6;
+            --text-main: #4a4a4a;
+            --primary: #ff8fab;
+            --primary-dark: #ff6b9d;
+            --card-bg: #ffffff;
+            --shadow: 0 8px 24px rgba(149, 157, 165, 0.12);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+
+        /* 顶部导航 */
+        header {
+            text-align: center; padding: 30px 20px 25px;
+            background: linear-gradient(135deg, #fff 0%, #fff5f7 100%);
+            box-shadow: 0 2px 15px rgba(255, 143, 171, 0.1);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .header-back {
+            position: absolute; left: 20px; top: 50%; transform: translateY(-50%);
+            color: var(--primary); text-decoration: none; font-size: 1.5rem;
+            transition: transform 0.2s;
+        }
+        .header-back:hover { transform: translateY(-50%) translateX(-3px); }
+
+        h1 {
+            margin: 0; font-size: 1.5rem; color: var(--primary-dark);
+            letter-spacing: 3px; font-weight: 600;
+        }
+        p.subtitle {
+            font-size: 0.85rem; color: #999; margin-top: 8px;
+            max-width: 300px; margin-left: auto; margin-right: auto;
+        }
+
+        /* 模式切换 Tabs */
+        .tabs {
+            display: flex; justify-content: center; gap: 12px;
+            margin: 25px 0; padding: 0 20px;
+        }
+        .tab-btn {
+            padding: 12px 28px; border: none; border-radius: 25px;
+            background: #fff; color: #888; font-size: 0.95rem; cursor: pointer;
+            transition: all 0.3s; font-weight: 500;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border: 2px solid transparent;
+        }
+        .tab-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff; border-color: transparent;
+            box-shadow: 0 4px 15px rgba(255, 143, 171, 0.4);
+        }
+
+        /* 容器 */
+        .container {
+            max-width: 700px; margin: 0 auto; padding: 0 20px;
+        }
+
+        /* 提示文字 */
+        .hint-text {
+            text-align: center; font-size: 0.85rem; color: #aaa;
+            margin-bottom: 20px;
+        }
+        .hint-text span { color: var(--primary); }
+
+        /* 色卡网格 */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 16px;
+        }
+
+        /* 单个色卡 */
+        .card {
+            background: var(--card-bg); border-radius: 16px;
+            padding: 18px 12px; text-align: center; cursor: pointer;
+            box-shadow: var(--shadow); border: 3px solid transparent;
+            transition: all 0.25s ease;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 28px rgba(149, 157, 165, 0.18);
+        }
+        .card.selected {
+            border-color: var(--primary);
+            transform: scale(1.02);
+            box-shadow: 0 8px 25px rgba(255, 143, 171, 0.25);
+        }
+
+        /* CSS 拟态质地圈 */
+        .swatch {
+            width: 72px; height: 72px; border-radius: 50%;
+            margin: 0 auto 12px; position: relative; overflow: hidden;
+            border: 3px solid #f5f5f5;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.08);
+            transition: transform 0.2s;
+        }
+        .card:hover .swatch { transform: scale(1.08); }
+
+        /* ========== CSS 艺术：模拟液体质地 ========== */
+
+        /* 经血：鲜红 (正常) */
+        .texture-blood-fresh {
+            background: radial-gradient(circle at 35% 35%, #ff5555 0%, #cc0000 70%, #990000 100%);
+        }
+
+        /* 经血：暗红/褐色 (氧化) */
+        .texture-blood-old {
+            background: radial-gradient(circle at 35% 35%, #8b5a2b 0%, #5a3d2b 50%, #3d2817 100%);
+        }
+
+        /* 经血：血块感 */
+        .texture-blood-clot {
+            background-color: #880000;
+            background-image:
+                radial-gradient(ellipse at 30% 40%, #660000 25%, transparent 26%),
+                radial-gradient(ellipse at 70% 60%, #550000 20%, transparent 21%),
+                radial-gradient(ellipse at 50% 30%, #770000 15%, transparent 16%);
+        }
+
+        /* 经血：粉色点滴 */
+        .texture-blood-pink {
+            background: radial-gradient(circle at 40% 40%, #ffb6c1 0%, #ff8fa3 50%, #ffc4d6 100%);
+            opacity: 0.7;
+        }
+
+        /* 白带：蛋清拉丝 (排卵) */
+        .texture-white-egg {
+            background: linear-gradient(
+                135deg,
+                rgba(255,255,255,0.95) 0%,
+                rgba(245,245,245,0.6) 30%,
+                rgba(255,255,255,0.8) 50%,
+                rgba(240,240,240,0.5) 70%,
+                rgba(255,255,255,0.95) 100%
+            );
+            box-shadow: inset 0 0 12px rgba(200,200,200,0.5);
+        }
+        .texture-white-egg::after {
+            content: ''; position: absolute;
+            top: 20%; left: 30%; width: 40%; height: 30%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.9), transparent);
+            border-radius: 50%;
+        }
+
+        /* 白带：乳白糊状 */
+        .texture-white-cream {
+            background: linear-gradient(180deg, #fffef8 0%, #f5f0e8 50%, #ebe5db 100%);
+            box-shadow: inset 0 0 10px rgba(200,190,170,0.3);
+        }
+
+        /* 白带：豆腐渣 (霉菌) */
+        .texture-white-curd {
+            background-color: #fffefa;
+            background-image:
+                radial-gradient(circle at 20% 30%, #f0ede5 0%, #f0ede5 8%, transparent 9%),
+                radial-gradient(circle at 60% 20%, #eae7df 0%, #eae7df 6%, transparent 7%),
+                radial-gradient(circle at 40% 60%, #f5f2ea 0%, #f5f2ea 10%, transparent 11%),
+                radial-gradient(circle at 80% 50%, #ebe8e0 0%, #ebe8e0 7%, transparent 8%),
+                radial-gradient(circle at 25% 75%, #f0ede5 0%, #f0ede5 9%, transparent 10%),
+                radial-gradient(circle at 70% 80%, #e8e5dd 0%, #e8e5dd 5%, transparent 6%);
+        }
+
+        /* 白带：黄绿泡沫 (滴虫) */
+        .texture-white-foam {
+            background-color: #e8f0e0;
+            background-image:
+                radial-gradient(circle, rgba(200,220,180,0.6) 30%, transparent 31%),
+                radial-gradient(circle, rgba(180,210,160,0.5) 25%, transparent 26%);
+            background-size: 12px 12px, 8px 8px;
+            background-position: 0 0, 4px 4px;
+        }
+
+        /* 白带：灰白水样 (细菌BV) */
+        .texture-white-grey {
+            background: linear-gradient(
+                180deg,
+                rgba(240,240,240,0.9) 0%,
+                rgba(220,220,220,0.7) 50%,
+                rgba(230,230,230,0.8) 100%
+            );
+        }
+
+        .label {
+            font-size: 0.85rem; font-weight: 500; color: #666;
+            line-height: 1.3;
+        }
+
+        /* 诊断结果面板 */
+        #result-panel {
+            margin-top: 30px; padding: 24px; border-radius: 20px;
+            background: #fff;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            display: none;
+            animation: slideUp 0.35s ease-out;
+            border-left: 5px solid #ccc;
+            position: relative;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(25px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-icon {
+            position: absolute; top: -20px; left: 24px;
+            width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; background: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        #result-title {
+            font-size: 1.15rem; margin: 8px 0 12px; font-weight: 600;
+            padding-right: 20px;
+        }
+        #result-desc {
+            font-size: 0.92rem; line-height: 1.7; color: #666;
+            margin-bottom: 16px;
+        }
+        #result-advice {
+            font-size: 0.88rem; background: #fafafa; padding: 14px 16px;
+            border-radius: 12px; color: #555; line-height: 1.6;
+            border: 1px solid #f0f0f0;
+        }
+        #result-advice strong { color: var(--primary); }
+
+        /* 状态颜色 */
+        .status-normal { border-left-color: #4caf50 !important; }
+        .status-normal .result-icon { background: #e8f5e9; }
+        .status-normal #result-title { color: #2e7d32; }
+
+        .status-warning { border-left-color: #ff9800 !important; }
+        .status-warning .result-icon { background: #fff3e0; }
+        .status-warning #result-title { color: #ef6c00; }
+
+        .status-danger { border-left-color: #f44336 !important; }
+        .status-danger .result-icon { background: #ffebee; }
+        .status-danger #result-title { color: #c62828; }
+
+        /* 免责声明 */
+        .disclaimer {
+            margin-top: 30px; padding: 16px; background: #fff8f8;
+            border-radius: 12px; font-size: 0.8rem; color: #999;
+            text-align: center; line-height: 1.6;
+            border: 1px dashed #ffd0d0;
+        }
+        .disclaimer strong { color: #ff6b6b; }
+
+        /* 底部导航 */
+        .bottom-nav {
+            display: flex; justify-content: center; gap: 15px;
+            margin-top: 30px; flex-wrap: wrap;
+        }
+        .nav-btn {
+            padding: 12px 24px; border-radius: 25px;
+            text-decoration: none; font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        .nav-btn.primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff; box-shadow: 0 4px 15px rgba(255, 143, 171, 0.3);
+        }
+        .nav-btn.primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 143, 171, 0.4); }
+        .nav-btn.secondary {
+            background: #fff; color: #888; border: 1px solid #eee;
+        }
+        .nav-btn.secondary:hover { border-color: var(--primary); color: var(--primary); }
+
+        /* ========== 移动端适配 ========== */
+        @media screen and (max-width: 480px) {
+            header { padding: 20px 15px; }
+            h1 { font-size: 1.3rem; }
+            p.subtitle { font-size: 0.8rem; }
+            .header-back { left: 15px; font-size: 1.3rem; }
+
+            .tabs { gap: 10px; }
+            .tab-btn { padding: 10px 20px; font-size: 0.85rem; }
+
+            .grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+            .card { padding: 14px 10px; }
+            .swatch { width: 60px; height: 60px; }
+            .label { font-size: 0.8rem; }
+
+            #result-panel { padding: 20px 16px; margin-top: 25px; }
+            #result-title { font-size: 1.05rem; }
+            #result-desc { font-size: 0.88rem; }
+            #result-advice { font-size: 0.82rem; padding: 12px; }
+
+            .bottom-nav { flex-direction: column; align-items: center; }
+            .nav-btn { width: 80%; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="header-back">←</a>
+        <h1>健康信号解码器</h1>
+        <p class="subtitle">点击最接近你情况的色块，身体会告诉你答案</p>
+    </header>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-mode="discharge">白带 / 分泌物</button>
+        <button class="tab-btn" data-mode="blood">月经 / 出血</button>
+    </div>
+
+    <div class="container">
+        <p class="hint-text">选择 <span>最接近</span> 你观察到的颜色和质地</p>
+
+        <div id="grid-container" class="grid"></div>
+
+        <div id="result-panel">
+            <div class="result-icon" id="result-icon">🟢</div>
+            <h3 id="result-title">诊断结果</h3>
+            <p id="result-desc">详细描述...</p>
+            <div id="result-advice">建议...</div>
+        </div>
+
+        <div class="disclaimer">
+            <strong>⚠️ 免责声明：</strong>本工具仅供健康科普参考，不能替代医生的专业诊断。
+            如有不适，请及时就医。
+        </div>
+
+        <div class="bottom-nav">
+            <a href="cycle-simulator.html" class="nav-btn primary">🔄 月经周期模拟器</a>
+            <a href="index.html" class="nav-btn secondary">🔬 3D 解剖实验室</a>
+        </div>
+    </div>
+
+    <script>
+        // ========== 健康数据库 ==========
+        const healthData = {
+            discharge: [
+                {
+                    id: 'd1',
+                    label: '透明 / 蛋清拉丝',
+                    textureClass: 'texture-white-egg',
+                    status: 'normal',
+                    icon: '🟢',
+                    title: '排卵期正常信号',
+                    desc: '这是雌激素分泌高峰期的表现，通常出现在两次月经中间（排卵前后）。分泌物像生鸡蛋清一样透明、有弹性、可以拉出长丝。这是女性生育能力最强的标志。',
+                    advice: '完全正常的生理现象，说明卵巢功能良好。如果在备孕，这几天是最佳时机。'
+                },
+                {
+                    id: 'd2',
+                    label: '乳白 / 糊状',
+                    textureClass: 'texture-white-cream',
+                    status: 'normal',
+                    icon: '🟢',
+                    title: '黄体期正常现象',
+                    desc: '排卵后至月经前，受孕激素影响，分泌物会变少、变粘稠，呈乳白色糊状或乳液状，无异味或仅有淡淡酸味。',
+                    advice: '只要没有瘙痒、灼热或异味，这就是正常的周期性变化。保持外阴清洁干燥即可。'
+                },
+                {
+                    id: 'd3',
+                    label: '豆腐渣 / 凝乳块',
+                    textureClass: 'texture-white-curd',
+                    status: 'warning',
+                    icon: '🟡',
+                    title: '疑似霉菌性阴道炎',
+                    desc: '典型的念珠菌（真菌/酵母菌）感染特征。分泌物呈白色豆腐渣状或凝乳块状，通常伴有明显的外阴瘙痒、红肿、灼热感，可能有轻微酸味。',
+                    advice: '常见于免疫力下降、糖尿病、长期使用抗生素或潮湿闷热环境。建议就医做白带常规检查，医生通常会开具抗真菌栓剂或乳膏。避免自行用药。'
+                },
+                {
+                    id: 'd4',
+                    label: '黄绿 / 泡沫状',
+                    textureClass: 'texture-white-foam',
+                    status: 'danger',
+                    icon: '🔴',
+                    title: '疑似滴虫性阴道炎',
+                    desc: '由阴道毛滴虫（一种寄生虫）引起。分泌物稀薄、量多、呈黄绿色或灰绿色，有明显泡沫感，伴随难闻的腥臭味和剧烈瘙痒、灼痛。',
+                    advice: '这是一种性传播疾病！请立即就医，伴侣需要同时治疗，治疗期间禁止性行为。医生通常会开具甲硝唑类药物。'
+                },
+                {
+                    id: 'd5',
+                    label: '灰白 / 鱼腥味',
+                    textureClass: 'texture-white-grey',
+                    status: 'warning',
+                    icon: '🟡',
+                    title: '疑似细菌性阴道病 (BV)',
+                    desc: '阴道菌群失调导致，乳酸杆菌减少、厌氧菌过度生长。分泌物稀薄均匀，呈灰白色或灰黄色，最大特点是有明显的鱼腥臭味（尤其在性行为后或月经期）。',
+                    advice: '不要过度清洗阴道内部！阴道有自净功能。建议就医，医生可能开具甲硝唑或克林霉素。注意：BV会增加其他感染风险。'
+                }
+            ],
+            blood: [
+                {
+                    id: 'b1',
+                    label: '鲜红色',
+                    textureClass: 'texture-blood-fresh',
+                    status: 'normal',
+                    icon: '🟢',
+                    title: '经期正常血色',
+                    desc: '这是新鲜的血液，说明子宫内膜脱落排出顺畅、血流通畅。通常出现在月经量最多的第2-3天，是最健康的经血颜色。',
+                    advice: '身体运作良好！注意及时更换卫生用品（每4-6小时），保持私处清洁干燥。'
+                },
+                {
+                    id: 'b2',
+                    label: '深红 / 褐色',
+                    textureClass: 'texture-blood-old',
+                    status: 'normal',
+                    icon: '🟢',
+                    title: '氧化旧血（正常）',
+                    desc: '常见于月经刚开始的第1天或快结束的最后1-2天。这是血液在体内或子宫中停留时间稍长，与空气中的氧气接触后颜色变深，属于正常现象。',
+                    advice: '无需担心。但如果在非经期持续出现褐色分泌物超过3天，建议就医排查宫颈或子宫问题。'
+                },
+                {
+                    id: 'b3',
+                    label: '大血块（>硬币）',
+                    textureClass: 'texture-blood-clot',
+                    status: 'warning',
+                    icon: '🟡',
+                    title: '经量过大警示',
+                    desc: '偶尔有小血块（小于1元硬币）是正常的，因为身体来不及分泌足够的抗凝血酶。但如果血块大于1元硬币、频繁出现，且伴随剧烈痛经或月经量极大（每1-2小时湿透卫生巾）。',
+                    advice: '可能与子宫肌瘤、子宫腺肌症、子宫内膜息肉或凝血功能问题有关。建议做妇科B超和血常规检查。'
+                },
+                {
+                    id: 'b4',
+                    label: '粉色 / 极少量',
+                    textureClass: 'texture-blood-pink',
+                    status: 'warning',
+                    icon: '🟡',
+                    title: '点滴出血需关注',
+                    desc: '非经期出现淡粉色或极少量出血，可能原因包括：排卵期出血（两次月经中间）、受精卵着床出血、宫颈糜烂/息肉、性行为后微损伤等。',
+                    advice: '偶尔的排卵期出血（1-2天）是生理性的。但如果是同房后出血或不规则出血反复发生，必须警惕宫颈问题，建议做HPV筛查和TCT检查。'
+                }
+            ]
+        };
+
+        // ========== DOM 元素 ==========
+        const gridContainer = document.getElementById('grid-container');
+        const resultPanel = document.getElementById('result-panel');
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        let currentMode = 'discharge';
+
+        // ========== 初始化 ==========
+        renderGrid('discharge');
+
+        // Tab 切换
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const mode = btn.dataset.mode;
+                if (mode === currentMode) return;
+
+                currentMode = mode;
+                tabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                resultPanel.style.display = 'none';
+                renderGrid(mode);
+            });
+        });
+
+        // ========== 渲染网格 ==========
+        function renderGrid(mode) {
+            gridContainer.innerHTML = '';
+            const data = healthData[mode];
+
+            data.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.onclick = () => selectCard(card, item);
+
+                const swatch = document.createElement('div');
+                swatch.className = `swatch ${item.textureClass}`;
+
+                const label = document.createElement('div');
+                label.className = 'label';
+                label.innerText = item.label;
+
+                card.appendChild(swatch);
+                card.appendChild(label);
+                gridContainer.appendChild(card);
+            });
+        }
+
+        // ========== 选择卡片 ==========
+        function selectCard(cardElement, data) {
+            // 移除其他选中状态
+            document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+            cardElement.classList.add('selected');
+
+            // 更新结果面板
+            resultPanel.className = `status-${data.status}`;
+            resultPanel.style.display = 'block';
+
+            document.getElementById('result-icon').innerText = data.icon;
+            document.getElementById('result-title').innerText = data.title;
+            document.getElementById('result-desc').innerText = data.desc;
+            document.getElementById('result-advice').innerHTML = `<strong>💡 建议：</strong>${data.advice}`;
+
+            // 滚动到结果
+            setTimeout(() => {
+                resultPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+    </script>
+</body>
+</html>

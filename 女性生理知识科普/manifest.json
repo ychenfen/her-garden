@@ -1,0 +1,24 @@
+{
+    "name": "她的花园 - 女性健康科普",
+    "short_name": "她的花园",
+    "description": "了解自己，爱护自己 - 交互式女性生理健康教育平台",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#1a1a2e",
+    "theme_color": "#ff8fab",
+    "orientation": "any",
+    "icons": [
+        {
+            "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%231a1a2e' width='192' height='192' rx='32'/><path fill='%23ff8fab' d='M96 156l-8.7-7.9C52.4 116.2 32 97.7 32 75c0-18.5 14.5-33 33-33 10.4 0 20.4 4.8 27 12.5C98.6 46.8 108.6 42 119 42c18.5 0 33 14.5 33 33 0 22.7-20.4 41.2-55.3 73.1L96 156z'/></svg>",
+            "sizes": "192x192",
+            "type": "image/svg+xml"
+        },
+        {
+            "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%231a1a2e' width='512' height='512' rx='64'/><path fill='%23ff8fab' d='M256 416l-23.2-21.1C147 320.6 85 260.5 85 200c0-49.3 38.7-88 88-88 27.8 0 54.4 12.9 72 33.3C262.6 124.9 289.2 112 317 112c49.3 0 88 38.7 88 88 0 60.5-62 120.6-147.8 194.9L256 416z'/></svg>",
+            "sizes": "512x512",
+            "type": "image/svg+xml"
+        }
+    ],
+    "categories": ["education", "health"],
+    "lang": "zh-CN"
+}
